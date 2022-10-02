@@ -3,7 +3,7 @@ package Input;
 import GameObjects.GameObject;
 import GameObjects.Obstacle;
 import GameObjects.Target;
-import Graphicks.Main;
+import Graphics.Main;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;

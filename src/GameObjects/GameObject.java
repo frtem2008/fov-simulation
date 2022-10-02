@@ -1,6 +1,6 @@
 package GameObjects;
 
-import Graphicks.Main;
+import Graphics.Main;
 
 import java.awt.*;
 import java.util.ArrayList;

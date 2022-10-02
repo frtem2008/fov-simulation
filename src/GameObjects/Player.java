@@ -1,7 +1,7 @@
 package GameObjects;
 
-import Graphicks.Display;
-import Graphicks.Main;
+import Graphics.Display;
+import Graphics.Main;
 import Input.Keyboard;
 
 import java.awt.*;

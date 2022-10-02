@@ -1,4 +1,4 @@
-package Graphicks;//основной игровой класс
+package Graphics;//основной игровой класс
 
 import GameObjects.GameObject;
 import GameObjects.Obstacle;
