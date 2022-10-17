@@ -1,4 +1,5 @@
 public enum MessageType {
+    INVALID(-1),
     CHOKE(1),
     UNCHOKE(2),
     INTERESTED(3),

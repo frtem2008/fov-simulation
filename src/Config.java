@@ -9,7 +9,6 @@ public class Config {
     private String fileName;
     private long fileSize;
     private long pieceSize;
-
     //config file text
     private String configFile;
 
@@ -21,6 +20,7 @@ public class Config {
             e.printStackTrace();
             System.exit(-1);
         }
+
         parseConfig();
     }
 

@@ -8,6 +8,7 @@ public class PeerProcess {
     private final long pieceSize;
     private final int totalPieces;
     public String fileName;
+
     public static ArrayList<Peer> peers = new ArrayList<>();
 
     public PeerProcess(Config config) {
@@ -34,13 +35,16 @@ public class PeerProcess {
         String[] split = peerInfo.split("\n");
         int id, port, hasFile;
         String hostname;
-        for (String s : split) {
-            String[] peerCfg = s.split(" ");
+        System.out.println("Starting " + split.length + " peers");
+        for (int i = 0; i < split.length; i++) {
+            String[] peerCfg = split[i].split(" ");
             id = Integer.parseInt(peerCfg[0]);
             hostname = peerCfg[1];
             port = Integer.parseInt(peerCfg[2]);
             hasFile = Integer.parseInt(peerCfg[3]);
-            Peer cur = new Peer(id, hostname, port, hasFile == 1, config);
+            System.out.println("Generating a new peer... ");
+            Peer cur = new Peer(id, hostname, port, hasFile == 1, config, peers);
+            System.out.println("Generated new peer: " + cur);
             peers.add(cur);
         }
     }
