@@ -12,16 +12,14 @@ public class Peer implements Protocol {
 
     private final ArrayList<Bitfield> neighbourFields = new ArrayList<>();
     private final Bitfield bitfield = new Bitfield();
-
+    private final ArrayList<TCPPhone> unchokedPeers = new ArrayList<>();
+    private final ArrayList<Peer> peers;
     private int numberOfPrefNeighbour;
     private int unchokingInterval;
     private int optUnchokingInterval;
     private String fileName;
     private long fileSize;
     private long pieceSize;
-    private ArrayList<TCPPhone> unchokedPeers = new ArrayList<>();
-    private ArrayList<Peer> peers;
-
     private File peerDirectory;
 
     public Peer(int peerID, String hostName, int peerPort, boolean hasFile, Config config, ArrayList<Peer> peers) {
@@ -54,8 +52,7 @@ public class Peer implements Protocol {
                 '}';
     }
 
-    //TODO
-    public void setupSocket() {
+    private void setupSocket() {
         //setting up a startCommunication on peer host
         try {
             startCommunication();
@@ -67,7 +64,7 @@ public class Peer implements Protocol {
 
     }
 
-    public void startCommunication() throws IOException {
+    private void startCommunication() throws IOException {
         System.out.println("Starting a server on port: " + peerPort);
         ServerSocket server = new ServerSocket(peerPort);
         System.out.println("Server started on port: " + peerPort);
@@ -189,7 +186,7 @@ public class Peer implements Protocol {
         }).start();
     }
 
-    public void setConfig(Config config) {
+    private void setConfig(Config config) {
         numberOfPrefNeighbour = config.getNumberOfNeighbours();
         unchokingInterval = config.getUnchokingInterval();
         fileName = config.getFileName();

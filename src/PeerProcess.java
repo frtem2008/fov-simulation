@@ -4,12 +4,11 @@ import java.util.ArrayList;
 
 public class PeerProcess {
     private static final String peerConfigFile = "src/PeerInfo.cfg";
+    public static ArrayList<Peer> peers = new ArrayList<>();
     private final long fileSize;
     private final long pieceSize;
     private final int totalPieces;
     public String fileName;
-
-    public static ArrayList<Peer> peers = new ArrayList<>();
 
     public PeerProcess(Config config) {
         fileName = config.getFileName();
@@ -36,6 +35,7 @@ public class PeerProcess {
         int id, port, hasFile;
         String hostname;
         System.out.println("Starting " + split.length + " peers");
+
         for (int i = 0; i < split.length; i++) {
             String[] peerCfg = split[i].split(" ");
             id = Integer.parseInt(peerCfg[0]);
