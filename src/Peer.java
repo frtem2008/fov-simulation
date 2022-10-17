@@ -39,6 +39,8 @@ public class Peer implements Protocol {
     public void setupSocket() {
         //setting up a server on peer host
         //setting up a list of clients to connect to other pears
+
+
     }
 
     public void setConfig(Config config) {
