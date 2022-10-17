@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ public class Peer implements Protocol {
     private ArrayList<TCPPhone> unchokedPeers = new ArrayList<>();
     private ArrayList<Peer> peers;
 
+    private File peerDirectory;
+
     public Peer(int peerID, String hostName, int peerPort, boolean hasFile, Config config, ArrayList<Peer> peers) {
         this.peerID = peerID;
         this.hostName = hostName;
@@ -29,8 +32,16 @@ public class Peer implements Protocol {
 
         messages = new ArrayList<>();
         this.peers = peers;
+
         setConfig(config);
+        createFiles();
         setupSocket();
+    }
+
+    private void createFiles() {
+        peerDirectory = new File("peer_" + peerID);
+        if (!peerDirectory.mkdir())
+            throw new RuntimeException("Unable to create a directory for a peer: " + peerDirectory.getAbsolutePath());
     }
 
     @Override
