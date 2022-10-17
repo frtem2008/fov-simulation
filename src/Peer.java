@@ -77,6 +77,28 @@ public class Peer implements Protocol {
     }
 
     private void startServerThread(ServerSocket server) {
+
+        //peers choke-unchoke thread
+        new Thread(() -> {
+            while (true) {
+                //calculate download rate from each in peers, or if hasACompleteFile, randomly
+                //choose numberOfPrefNeighbour peers to unchoke
+                //choose the best unchoked neighbour
+                //adding all them to a list
+                //unchokedPeers.addAll(getBestDownloadingRatePeers());
+                //send "unchoke" message to each of them, except peers, which are already unchoked
+                //receiving a request message from all
+                //updating bitfields
+                //send "choke" message to all other peers, except the optimistically unchoked neighbour
+
+                //Unchoking interval sleep
+                try {
+                    Thread.sleep(unchokingInterval * 1000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
         while (true) {
             TCPPhone client = new TCPPhone(server);
             new Thread(() -> {
@@ -161,28 +183,6 @@ public class Peer implements Protocol {
         TCPPhone client = new TCPPhone(peer.hostName, peer.peerPort);
         new Thread(() -> {
             handleMessages(client, peer);
-        }).start();
-
-        //peers choke-unchoke thread
-        new Thread(() -> {
-            while (true) {
-                //calculate download rate from each in peers, or if hasACompleteFile, randomly
-                //choose numberOfPrefNeighbour peers to unchoke
-                //choose the best unchoked neighbour
-                //adding all them to a list
-                //unchokedPeers.addAll(getBestDownloadingRatePeers());
-                //send "unchoke" message to each of them, except peers, which are already unchoked
-                //receiving a request message from all
-                //updating bitfields
-                //send "choke" message to all other peers, except the optimistically unchoked neighbour
-
-                //Unchoking interval sleep
-                try {
-                    Thread.sleep(unchokingInterval * 1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
         }).start();
     }
 
