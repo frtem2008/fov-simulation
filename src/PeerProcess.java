@@ -8,7 +8,7 @@ public class PeerProcess {
     private final long pieceSize;
     private final int totalPieces;
     public String fileName;
-    public ArrayList<Peer> peers = new ArrayList<>();
+    public static ArrayList<Peer> peers = new ArrayList<>();
 
     public PeerProcess(Config config) {
         fileName = config.getFileName();

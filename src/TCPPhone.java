@@ -29,7 +29,7 @@ public class TCPPhone implements Closeable {
         }
     }
 
-    //server constructor
+    //startCommunication constructor
     public TCPPhone(ServerSocket server) {
         try {
             this.socket = server.accept();//waiting for client
