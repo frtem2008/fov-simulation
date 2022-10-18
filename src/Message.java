@@ -8,7 +8,7 @@ public class Message implements Serializable {
     private int length;
     private final MessageType type;
 
-    private Bitfield bits;
+    private final Bitfield bits;
 
     public Message(MessageType type, byte[] bits) {
         this.type = type;

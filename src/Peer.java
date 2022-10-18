@@ -1,9 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Peer implements Protocol {
     private final int peerID;
@@ -118,7 +116,6 @@ public class Peer implements Protocol {
     }
 
 
-
     private boolean checkHandshake(Message received, Peer peer) {
         int receivedId;
         //handshake checks: right neighbour + peer id + right handshake header
@@ -171,46 +168,46 @@ public class Peer implements Protocol {
                 } else {
                     //send not-interested message
                 }
-                //now, whe know the connection is established and we can start
+            }
 
-                //infinite messaging loop
-                while (true) {
-                    //get a message
-                    //mess = getMessage();
-                    switch (mess.getType()) {
-                        case CHOKE -> {
-                            // no more pieces would be received ===> start checking messages until unchoking
-                        }
-                        case UNCHOKE -> {
-                            //send a request message, using a client bitfield and our own bitfield
-                        }
-                        case INTERESTED -> {
-                            //remember, that this peer is interested in peaces, we have
-                        }
-                        case NOT_INTERESTED -> {
-                            //remember, that this peer is not interested in peaces, we have
-                        }
-                        case HAVE -> {
-                            //check, if peer needs any pieces from the have message
-                            //send interested or not interested
-                        }
-                        case BITFIELD, INVALID -> {
-                            //INCORRECT CASE, SHOULDN'T BE RECEIVED AFTER HANDSHAKING
-                        }
-                        case REQUEST -> {
-                            if (unchoked) {
-                                //send a peace message, corresponding to the request
-                            } else {
-                                //SOMETHING STRANGE (REQUEST MESSAGES SHOULD BE SENT ONLY IF UNCHOKED)
-                                throw new IllegalStateException("Received a request message, but not unchoked yet");
-                            }
-                        }
-                        case PIECE -> {
-                            //checks if it is a requested peace, and if the peer had actually requested any peaces
-                            //download a peace from a message
-                        }
-                        default -> throw new IllegalArgumentException("WRONG MESSAGE TYPE RECEIVED: " + mess.getType());
+            //now, we know the connection is established and we can start
+            //infinite messaging loop
+            while (true) {
+                //get a message
+                //mess = getMessage();
+                switch (mess.getType()) {
+                    case CHOKE -> {
+                        // no more pieces would be received ===> start checking messages until unchoking
                     }
+                    case UNCHOKE -> {
+                        //send a request message, using a client bitfield and our own bitfield
+                    }
+                    case INTERESTED -> {
+                        //remember, that this peer is interested in peaces, we have
+                    }
+                    case NOT_INTERESTED -> {
+                        //remember, that this peer is not interested in peaces, we have
+                    }
+                    case HAVE -> {
+                        //check, if peer needs any pieces from the have message
+                        //send interested or not interested
+                    }
+                    case BITFIELD, INVALID -> {
+                        //INCORRECT CASE, SHOULDN'T BE RECEIVED AFTER HANDSHAKING
+                    }
+                    case REQUEST -> {
+                        if (unchoked) {
+                            //send a peace message, corresponding to the request
+                        } else {
+                            //SOMETHING STRANGE (REQUEST MESSAGES SHOULD BE SENT ONLY IF UNCHOKED)
+                            throw new IllegalStateException("Received a request message, but not unchoked yet");
+                        }
+                    }
+                    case PIECE -> {
+                        //checks if it is a requested peace, and if the peer had actually requested any peaces
+                        //download a peace from a message
+                    }
+                    default -> throw new IllegalArgumentException("WRONG MESSAGE TYPE RECEIVED: " + mess.getType());
                 }
             }
         } else {
