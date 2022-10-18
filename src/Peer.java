@@ -1,17 +1,20 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Peer implements Protocol {
     private final int peerID;
     private final String hostName;
     private final int peerPort;
     private final boolean hasFile;
+    private final PeerMessageSender peerMessageSender;
     private final ArrayList<Message> messages;
 
     private final ArrayList<Bitfield> neighbourFields = new ArrayList<>();
-    private final Bitfield bitfield = new Bitfield();
+    private final Bitfield bitfield = new Bitfield(new byte[]{});
     private final ArrayList<TCPPhone> unchokedPeers = new ArrayList<>();
     private final ArrayList<Peer> peers;
     private int numberOfPrefNeighbour;
@@ -29,6 +32,7 @@ public class Peer implements Protocol {
         this.hasFile = hasFile;
 
         messages = new ArrayList<>();
+        peerMessageSender = new PeerMessageSender();
         this.peers = peers;
 
         setConfig(config);
@@ -36,8 +40,13 @@ public class Peer implements Protocol {
         setupSocket();
     }
 
+    public int getPeerID() {
+        return peerID;
+    }
+
     private void createFiles() {
         peerDirectory = new File("peer_" + peerID);
+        System.out.println("[peer" + peerID + "] " + "Peer " + peerID + " directory " + (peerDirectory.delete() ? "deleted" : "not deleted"));
         if (!peerDirectory.mkdir())
             throw new RuntimeException("Unable to create a directory for a peer: " + peerDirectory.getAbsolutePath());
     }
@@ -65,9 +74,9 @@ public class Peer implements Protocol {
     }
 
     private void startCommunication() throws IOException {
-        System.out.println("Starting a server on port: " + peerPort);
+        System.out.println("[peer" + peerID + "] " + "Starting a server on port: " + peerPort);
         ServerSocket server = new ServerSocket(peerPort);
-        System.out.println("Server started on port: " + peerPort);
+        System.out.println("[peer" + peerID + "] " + "Server started on port: " + peerPort);
 
         for (int i = 0; i < peers.size(); i++) {
             startPeerThread(peers.get(i));
@@ -77,7 +86,6 @@ public class Peer implements Protocol {
     }
 
     private void startServerThread(ServerSocket server) {
-
         //peers choke-unchoke thread
         new Thread(() -> {
             while (true) {
@@ -99,6 +107,8 @@ public class Peer implements Protocol {
                 }
             }
         }).start();
+
+        //wait for peers to connect in an infinite loop 
         while (true) {
             TCPPhone client = new TCPPhone(server);
             new Thread(() -> {
@@ -107,17 +117,48 @@ public class Peer implements Protocol {
         }
     }
 
+
+
+    private boolean checkHandshake(Message received, Peer peer) {
+        int receivedId;
+        //handshake checks: right neighbour + peer id + right handshake header
+        if (received.getType() == MessageType.HANDSHAKE) {
+            receivedId = Utils.intFromByteArr(received.getBits().getBytes(28, 31));
+            return peer == null || receivedId == peer.peerID;
+        }
+        return false;
+    }
+
+    private boolean handshake(TCPPhone client, Peer toHandshake) {
+        boolean handshaked;
+        handshaked = peerMessageSender.sendHandshake(client, this);
+        if (!handshaked)
+            throw new RuntimeException("Failed to send a handshake message to: " + client);
+        //wait for answer
+        Message receivedHandshake;
+        System.out.println("[peer" + peerID + "] " + "Waiting for a message from a peer: " + client.getIp());
+        try {
+            receivedHandshake = client.readMessage();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("[peer" + peerID + "] " + "Failed to receive a handshake message from: " + client.getIp());
+        }
+        System.out.println("[peer" + peerID + "] " + "Received a message from peer: " + client.getIp());
+        //handshake checks
+        handshaked = checkHandshake(receivedHandshake, toHandshake);
+        return handshaked;
+    }
+
     private void handleMessages(TCPPhone client, Peer peer) {
-        boolean handshaked = false, interested = false, unchoked = false;
-        Message mess = new Message(MessageType.INVALID);
+        boolean handshaked, interested = false, unchoked = false;
+        Message mess = new Message(MessageType.INVALID, new byte[]{});
 
         if (peer == null)
-            System.out.println("Pier connected: " + client.getIp());
+            System.out.println("[peer" + peerID + "] " + "peer connected: " + client.getIp());
         else
-            System.out.println("Connected to the peer: " + peer.hostName + ":" + peer.peerPort);
+            System.out.println("[peer" + peerID + "] " + "Connected to the peer: " + peer.hostName + ":" + peer.peerPort);
         //handshake
-        //wait for answer
-        //handshake checks: right neighbour + peer id + right handshake header
+        handshaked = handshake(client, peer);
+        System.out.println("[peer" + peerID + "] " + "handshaked = " + handshaked + " with peer " + client.getIp());
         if (handshaked) {
             if (hasFile) {
                 //bitfield
@@ -194,8 +235,8 @@ public class Peer implements Protocol {
         pieceSize = config.getPieceSize();
 
         if (hasFile)
-            bitfield.setAll(1);
+            bitfield.setAll((byte) 1);
         else
-            bitfield.setAll(0);
+            bitfield.setAll((byte) 0);
     }
 }

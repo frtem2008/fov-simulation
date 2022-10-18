@@ -73,6 +73,16 @@ public class TCPPhone implements Closeable {
             throw new SocketException("Socket closed");
     }
 
+    public Message readMessage() throws IOException, ClassNotFoundException {
+        if (!closed) {
+            Object res = objectReader.readObject();
+            if (res instanceof Message)
+                return (Message) res;
+            return null;
+        } else
+            throw new SocketException("Socket closed");
+    }
+
     //for try-catch with resources
     @Override
     public void close() throws IOException {
@@ -91,5 +101,13 @@ public class TCPPhone implements Closeable {
         TCPPhone cur = (TCPPhone) x;
         return cur.socket == this.socket &&
                 cur.getIp().equals(this.getIp());
+    }
+
+    @Override
+    public String toString() {
+        return "TCPPhone{" +
+                "ip=" + getIp() +
+                ", closed=" + closed +
+                '}';
     }
 }
