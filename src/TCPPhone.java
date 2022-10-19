@@ -52,6 +52,7 @@ public class TCPPhone implements Closeable {
             throw new SocketException("Socket closed");
     }
 
+    //writing bytes
     public void writeBytes(byte[] bytes) throws IOException {
         if (!closed) {
             writer.write(bytes);
