@@ -3,10 +3,44 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.List;
 
 public class Utils {
+
+
+    public static byte[] getBytes(byte[] bytes, int begin, int end) {
+        if (begin < 0 || end >= bytes.length || end <= begin)
+            throw new IllegalArgumentException("Can't get bytes from " + begin + " to " + end);
+        byte[] res = new byte[end - begin + 1];
+        for (int i = 0; i <= end - begin; i++)
+            res[i] = bytes[i + begin];
+        return res;
+    }
+
+    public static void setAll(byte[] bytes, byte value) {
+        Arrays.fill(bytes, value);
+    }
+
+    public static void setBytes(byte[] bytes, int begin, int end, byte value) {
+        if (begin < 0 || end >= bytes.length || end <= begin)
+            throw new IllegalArgumentException("Can't set bytes from " + begin + " to " + end);
+
+        for (int i = begin; i <= end; i++)
+            bytes[i] = value;
+    }
+
+    public static void setBytes(byte[] bytes, int begin, int end, byte[] setBytes) {
+        System.out.println("bytes.length = " + bytes.length);
+        System.out.println("setBytes.length = " + setBytes.length);
+        System.out.println("end - begin + 1 = " + (end - begin + 1));
+        if (begin < 0 || end >= bytes.length || end <= begin)
+            throw new IllegalArgumentException("Can't set bytes from " + begin + " to " + end);
+        //ide replaced, i will never be able to use such functions
+        //similar to memcpy for arrays
+        if (end + 1 - begin >= 0) System.arraycopy(setBytes, 0, bytes, begin, end + 1 - begin);
+    }
+
     public static String readFile(File file) throws IOException {
         String nextLine;
         StringBuilder res = new StringBuilder();

@@ -1,17 +1,26 @@
 public enum MessageType {
-    INVALID(-1),
-    HANDSHAKE(100),
-    CHOKE(0),
-    UNCHOKE(1),
-    INTERESTED(2),
-    NOT_INTERESTED(3),
-    HAVE(4),
-    BITFIELD(5),
-    REQUEST(6),
-    PIECE(7);
-    int numberValue;
+    INVALID((byte) -1),
+    HANDSHAKE((byte) 100),
+    CHOKE((byte) 0),
+    UNCHOKE((byte) 1),
+    INTERESTED((byte) 2),
+    NOT_INTERESTED((byte) 3),
+    HAVE((byte) 4),
+    BITFIELD((byte) 5),
+    REQUEST((byte) 6),
+    PIECE((byte) 7);
+    byte numberValue;
 
-    MessageType(int numberValue) {
+    MessageType(byte numberValue) {
         this.numberValue = numberValue;
+    }
+
+    static MessageType getByValue(int i) {
+        for (MessageType e : values()) {
+            if (e.numberValue == i) {
+                return e;
+            }
+        }
+        return null;
     }
 }

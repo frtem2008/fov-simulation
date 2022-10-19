@@ -13,6 +13,9 @@ public class Bitfield implements Serializable {
         bytes = new ArrayList<>();
         Utils.addValueMultiTimes(bytes, (byte) 0, size);
     }
+    public int getSize() {
+        return bytes.size();
+    }
 
     public Bitfield(byte[] byteBits) {
         bytes = new ArrayList<>();
@@ -65,6 +68,4 @@ public class Bitfield implements Serializable {
             return null;
         return bytes.get(position);
     }
-
-
 }

@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class Peer implements Protocol {
@@ -116,11 +117,12 @@ public class Peer implements Protocol {
     }
 
 
-    private boolean checkHandshake(Message received, Peer peer) {
+    private boolean checkHandshake(byte[] bytes, Peer peer) {
         int receivedId;
+        String header = new String(Utils.getBytes(bytes, 0, 17));
         //handshake checks: right neighbour + peer id + right handshake header
-        if (received.getType() == MessageType.HANDSHAKE) {
-            receivedId = Utils.intFromByteArr(received.getBits().getBytes(28, 31));
+        if (header.equals("P2PFILESHARINGPROJ")) {
+            receivedId = Utils.intFromByteArr(Utils.getBytes(bytes, 28, 31));
             return peer == null || receivedId == peer.peerID;
         }
         return false;
@@ -132,11 +134,12 @@ public class Peer implements Protocol {
         if (!handshaked)
             throw new RuntimeException("Failed to send a handshake message to: " + client);
         //wait for answer
-        Message receivedHandshake;
+        byte[] receivedHandshake = new byte[32];
         System.out.println("[peer" + peerID + "] " + "Waiting for a message from a peer: " + client.getIp());
         try {
-            receivedHandshake = client.readMessage();
-        } catch (IOException | ClassNotFoundException e) {
+            if (client.readBytes(receivedHandshake) != 32)
+                throw new RuntimeException("[peer" + peerID + "] " + "Failed to receive a handshake message from: " + client.getIp() + " received not 32 bytes" );
+        } catch (IOException e) {
             throw new RuntimeException("[peer" + peerID + "] " + "Failed to receive a handshake message from: " + client.getIp());
         }
         System.out.println("[peer" + peerID + "] " + "Received a message from peer: " + client.getIp());

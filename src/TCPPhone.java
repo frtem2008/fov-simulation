@@ -1,9 +1,6 @@
 // FIXME: 17.10.2022 CLASS FOR EASIER ONLINE COMMUNICATION
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -11,8 +8,8 @@ import java.net.SocketException;
 public class TCPPhone implements Closeable {
     private final Socket socket; //socket
     //reader and writer
-    private final ObjectOutputStream objectWriter;
-    private final ObjectInputStream objectReader;
+    private final DataOutputStream writer;
+    private final DataInputStream reader;
 
     //is closed (for proper resource clearing)
     public boolean closed = false;
@@ -21,9 +18,9 @@ public class TCPPhone implements Closeable {
     public TCPPhone(String ip, int port) {
         try {
             this.socket = new Socket(ip, port);
-            this.objectWriter = new ObjectOutputStream(socket.getOutputStream());//reader creation
-            this.objectReader = new ObjectInputStream(socket.getInputStream());//writer creation
-            objectWriter.flush();
+            this.writer = new DataOutputStream(socket.getOutputStream());//writer creation
+            this.reader = new DataInputStream(socket.getInputStream());//reader creation
+            writer.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -33,9 +30,9 @@ public class TCPPhone implements Closeable {
     public TCPPhone(ServerSocket server) {
         try {
             this.socket = server.accept();//waiting for client
-            this.objectWriter = new ObjectOutputStream(socket.getOutputStream());//writer creation
-            this.objectReader = new ObjectInputStream(socket.getInputStream());//reader creation
-            objectWriter.flush();
+            this.writer = new DataOutputStream(socket.getOutputStream());//writer creation
+            this.reader = new DataInputStream(socket.getInputStream());//reader creation
+            writer.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -47,38 +44,18 @@ public class TCPPhone implements Closeable {
         return socket.getInetAddress().getHostAddress();
     }
 
-    //reading a string
-    public String readLine() throws IOException, ClassNotFoundException {
+    //reading bytes to dest array, returns number of bytes read
+    public int readBytes(byte[] dest) throws IOException {
         if (!closed) {
-            Object received = objectReader.readObject();
-            if (received instanceof String)
-                return (String) received;
-            throw new ClassCastException("Received object isn't a string");
+            return reader.read(dest);
         } else
             throw new SocketException("Socket closed");
     }
 
-    public void writeObject(Object o) throws IOException {
+    public void writeBytes(byte[] bytes) throws IOException {
         if (!closed) {
-            objectWriter.writeObject(o);
-            objectWriter.flush();
-        } else
-            throw new SocketException("Socket closed");
-    }
-
-    public Object readObject() throws IOException, ClassNotFoundException {
-        if (!closed) {
-            return objectReader.readObject();
-        } else
-            throw new SocketException("Socket closed");
-    }
-
-    public Message readMessage() throws IOException, ClassNotFoundException {
-        if (!closed) {
-            Object res = objectReader.readObject();
-            if (res instanceof Message)
-                return (Message) res;
-            return null;
+            writer.write(bytes);
+            writer.flush();
         } else
             throw new SocketException("Socket closed");
     }
@@ -86,8 +63,8 @@ public class TCPPhone implements Closeable {
     //for try-catch with resources
     @Override
     public void close() throws IOException {
-        objectReader.close();
-        objectWriter.close();
+        reader.close();
+        writer.close();
         socket.close();
     }
 

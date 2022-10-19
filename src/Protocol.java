@@ -1,5 +1,3 @@
 public interface Protocol {
-    int sizeOfMessage = 32;
-    String HANDSHAKE = "P2PFILESHARINGPROJ";
-    int zeroBytes = 10;
+    int MAX_BYTES = Integer.MAX_VALUE;
 }
