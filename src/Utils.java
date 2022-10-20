@@ -34,11 +34,15 @@ public class Utils {
         System.out.println("bytes.length = " + bytes.length);
         System.out.println("setBytes.length = " + setBytes.length);
         System.out.println("end - begin + 1 = " + (end - begin + 1));
-        if (begin < 0 || end >= bytes.length || end <= begin)
+
+        if (begin < 0 || end >= bytes.length || end <= begin) {
             throw new IllegalArgumentException("Can't set bytes from " + begin + " to " + end);
+        }
         //ide replaced, i will never be able to use such functions
         //similar to memcpy for arrays
-        if (end + 1 - begin >= 0) System.arraycopy(setBytes, 0, bytes, begin, end + 1 - begin);
+        if (end + 1 - begin >= 0) {
+            System.arraycopy(setBytes, 0, bytes, begin, end + 1 - begin);
+        }
     }
 
     public static String readFile(File file) throws IOException {

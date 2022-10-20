@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class Peer implements Protocol {
@@ -46,6 +45,7 @@ public class Peer implements Protocol {
     private void createFiles() {
         peerDirectory = new File("peer_" + peerID);
         System.out.println("[peer" + peerID + "] " + "Peer " + peerID + " directory " + (peerDirectory.delete() ? "deleted" : "not deleted"));
+
         if (!peerDirectory.mkdir())
             throw new RuntimeException("Unable to create a directory for a peer: " + peerDirectory.getAbsolutePath());
     }
@@ -68,8 +68,6 @@ public class Peer implements Protocol {
             e.printStackTrace();
             throw new RuntimeException("Unable to start a server");
         }
-
-
     }
 
     private void startCommunication() throws IOException {
@@ -138,7 +136,7 @@ public class Peer implements Protocol {
         System.out.println("[peer" + peerID + "] " + "Waiting for a message from a peer: " + client.getIp());
         try {
             if (client.readBytes(receivedHandshake) != 32)
-                throw new RuntimeException("[peer" + peerID + "] " + "Failed to receive a handshake message from: " + client.getIp() + " received not 32 bytes" );
+                throw new RuntimeException("[peer" + peerID + "] " + "Failed to receive a handshake message from: " + client.getIp() + " received not 32 bytes");
         } catch (IOException e) {
             throw new RuntimeException("[peer" + peerID + "] " + "Failed to receive a handshake message from: " + client.getIp());
         }
