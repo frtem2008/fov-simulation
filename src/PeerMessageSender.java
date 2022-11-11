@@ -12,10 +12,7 @@ public class PeerMessageSender {
         hBits.setBytes(28, 31, Utils.byteArrFromInt(sender.getPeerID()));
         byte[] sendBytes = hBits.getBytes();
         try {
-            System.out.println("sendBytes = " + Arrays.toString(sendBytes));
-            System.out.println("Sending message to " + toSend);
             toSend.writeBytes(sendBytes);
-            System.out.println("Message sent to " + toSend);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -32,10 +29,7 @@ public class PeerMessageSender {
         Utils.setBytes(sendBytes, 0, 3, Utils.byteArrFromInt(sendBytes.length - 6));
         Utils.setBytes(sendBytes, 5, sendBytes.length - 6, msg.getBits().getBytes());
 
-        System.out.println("sendBytes = " + Arrays.toString(sendBytes));
-        System.out.println("Sending message to " + toSend);
         toSend.writeBytes(sendBytes);
-        System.out.println("Message sent to " + toSend);
     }
 }
 

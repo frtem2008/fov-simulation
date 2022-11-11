@@ -7,14 +7,24 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Utils {
-
-
     public static byte[] getBytes(byte[] bytes, int begin, int end) {
         if (begin < 0 || end >= bytes.length || end <= begin)
             throw new IllegalArgumentException("Can't get bytes from " + begin + " to " + end);
         byte[] res = new byte[end - begin + 1];
-        for (int i = 0; i <= end - begin; i++)
-            res[i] = bytes[i + begin];
+        System.arraycopy(bytes, begin, res, 0, end - begin + 1);
+        return res;
+    }
+
+    public static byte[] getEmptyByteArr(int len) {
+        if (len < 0)
+            throw new IllegalArgumentException("Length can't be less than zero, length is: " + len);
+
+        if (len == 0)
+            return new byte[0];
+
+        byte[] res = new byte[len];
+        Utils.setBytes(res, 0, len - 1, (byte) 0);
+
         return res;
     }
 
@@ -24,7 +34,7 @@ public class Utils {
 
     public static void setBytes(byte[] bytes, int begin, int end, byte value) {
         if (begin < 0 || end >= bytes.length || end <= begin)
-            throw new IllegalArgumentException("Can't set bytes from " + begin + " to " + end);
+            throw new IllegalArgumentException("Can't set bytes from " + begin + " to " + end + " (bytes.length is " + bytes.length + ")");
 
         for (int i = begin; i <= end; i++)
             bytes[i] = value;
@@ -38,7 +48,6 @@ public class Utils {
         if (begin < 0 || end >= bytes.length || end <= begin) {
             throw new IllegalArgumentException("Can't set bytes from " + begin + " to " + end);
         }
-        //ide replaced, i will never be able to use such functions
         //similar to memcpy for arrays
         if (end + 1 - begin >= 0) {
             System.arraycopy(setBytes, 0, bytes, begin, end + 1 - begin);

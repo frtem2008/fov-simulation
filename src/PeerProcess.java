@@ -47,7 +47,7 @@ public class PeerProcess {
             port = Integer.parseInt(peerCfg[2]);
             hasFile = Integer.parseInt(peerCfg[3]);
             System.out.println("\n[peer process]Generating a new peer... ");
-            Peer cur = new Peer(id, hostname, port, hasFile == 1, config, peers, false);
+            Peer cur = new Peer(id, hostname, port, hasFile == 1, config, peers);
             System.out.println("[peer process]Generated new peer: " + cur);
             peers.add(cur);
         }
