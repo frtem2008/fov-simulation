@@ -16,6 +16,7 @@ public class TCPPhone implements Closeable {
 
     //is closed (for proper resource clearing)
     public boolean closed = false;
+    private int port = -1;
 
     //client constructor
     public TCPPhone(String ip, int port) {
@@ -23,6 +24,7 @@ public class TCPPhone implements Closeable {
             this.socket = new Socket(ip, port);
             this.writer = new DataOutputStream(socket.getOutputStream());//writer creation
             this.reader = new DataInputStream(socket.getInputStream());//reader creation
+            this.port = port;
             writer.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -41,6 +43,9 @@ public class TCPPhone implements Closeable {
         }
     }
 
+    public int getPort() {
+        return port;
+    }
 
     //getting ip address through socket
     public String getIp() {
