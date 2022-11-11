@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Peer implements Protocol {
     private final int peerID;
@@ -23,6 +24,8 @@ public class Peer implements Protocol {
     private long pieceSize;
     private File peerDirectory;
 
+    private Bitfield fileBitfield;
+
     public Peer(int peerID, String hostName, int peerPort, boolean hasFile, Config config, ArrayList<Peer> peers) {
         this.peerID = peerID;
         this.hostName = hostName;
@@ -33,9 +36,12 @@ public class Peer implements Protocol {
         peerMessageSender = new PeerMessageSender();
         this.peers = peers;
 
+
         setConfig(config);
         createFiles();
-        setupSocket();
+        fileBitfield = new Bitfield(PeerProcess.totalPieces);
+
+        new Thread(this::setupSocket).start(); //a separate thread for waiting for all peers to setup
     }
 
     public int getPeerID() {
@@ -74,6 +80,15 @@ public class Peer implements Protocol {
         System.out.println("[peer" + peerID + "] " + "Starting a server on port: " + peerPort);
         ServerSocket server = new ServerSocket(peerPort);
         System.out.println("[peer" + peerID + "] " + "Server started on port: " + peerPort);
+
+        //waiting until all peers have started (because of sync issues)
+        while (!Main.allPeersStarted) {
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         for (int i = 0; i < peers.size(); i++) {
             startPeerThread(peers.get(i));
@@ -128,6 +143,7 @@ public class Peer implements Protocol {
 
     private boolean handshake(TCPPhone client, Peer toHandshake) {
         boolean handshaked;
+
         handshaked = peerMessageSender.sendHandshake(client, this);
         if (!handshaked)
             throw new RuntimeException("Failed to send a handshake message to: " + client);
@@ -146,36 +162,132 @@ public class Peer implements Protocol {
         return handshaked;
     }
 
-    private void handleMessages(TCPPhone client, Peer peer) {
-        boolean handshaked, interested = false, unchoked = false;
-        Message mess = new Message(MessageType.INVALID, new byte[]{});
+    private int sendBitfield(TCPPhone client) {
+        System.out.println("[peer" + peerID + "] " + "sending bitfield message to " + client + "...");
+        byte[] bits = new byte[Main.process.getTotalPieces()];
+        Message bitfieldMessage = new Message();
+        if (hasFile)
+            Arrays.fill(bits, (byte) 1);
+        else
+            bits = fileBitfield.getBytes();
 
+        bitfieldMessage.setBits(new Bitfield(bits));
+        bitfieldMessage.setType(MessageType.BITFIELD);
+
+        try {
+            bitfieldMessage.send(client);
+            System.out.println("[peer" + peerID + "] " + "sending bitfield message to " + client + " done");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("[peer" + peerID + "] " + "sending bitfield message to " + client + " failed");
+            return -1;
+        }
+        return 0;
+    }
+
+    private boolean BitfieldCheck(Bitfield toCompare) {
+        System.out.println("[peer" + peerID + "] " + "Comparing bitfields");
+        if (toCompare.getSize() != bitfield.getSize()) {
+            System.out.println("[peer" + peerID + "] " + "Bitfields length is different");
+            return false;
+        }
+        for (int i = 0; i < bitfield.getSize(); i++) {
+            if (!toCompare.getByte(i).equals(bitfield.getByte(i)) && bitfield.getByte(i).equals((byte) 1)) {
+                System.out.println("[peer" + peerID + "] " + "Bitfields don't match");
+                return false;
+            }
+        }
+
+        System.out.println("[peer" + peerID + "] " + "Bitfields match");
+        return true;
+    }
+
+    private void sendInterested(TCPPhone client, boolean interested) throws IOException {
+        System.out.println("[peer" + peerID + "] " + "Sending interest message...");
+        Message toSend = new Message(interested ? MessageType.INTERESTED : MessageType.NOT_INTERESTED, Utils.getEmptyByteArr(0));
+        toSend.send(client);
+        System.out.println("[peer" + peerID + "] " + "Sending interest message done");
+    }
+
+    private void handleMessages(TCPPhone client, Peer peer) {
+        boolean handshaked, interested = false, gotBitfield, unchoked = false, flag;
+        Message mess = new Message(MessageType.INVALID, new byte[]{});
+        Bitfield receivedBitfield = new Bitfield(bitfield.getSize()); // should be the same size for each peer
+        System.out.println();
         if (peer == null)
             System.out.println("[peer" + peerID + "] " + "peer connected: " + client.getIp());
         else
             System.out.println("[peer" + peerID + "] " + "Connected to the peer: " + peer.hostName + ":" + peer.peerPort);
         //handshake
         handshaked = handshake(client, peer);
-        System.out.println("[peer" + peerID + "] " + "handshaked = " + handshaked + " with peer " + client.getIp());
+        System.out.println();
+        System.out.println("[peer" + peerID + "] " + "handshaked = " + handshaked + " with peer " + client.getIp() + ", peerID: " + (peer != null ? peer.peerID : "null peer"));
         if (handshaked) {
+            //bitfield
+            System.out.println();
+            sendBitfield(client);
+            System.out.println();
             if (hasFile) {
-                //bitfield
                 //wait for answer
-                //if no bitfield, than setBitfield 0, else - a received bitfield
-                //if bitFieldCheck() finds out B has the peaces we need
-                //interested = true
-                if (interested) {
-                    //send interested message
-                } else {
-                    //send not-interested message
+                try {
+                    mess.receive(client);
+                    if (mess.getType() != MessageType.INTERESTED || mess.getType() != MessageType.NOT_INTERESTED) {
+                        System.out.println("[peer" + peerID + "] " + "Failed to receive an answer to a bitfield message from " + client + ", actual message type was " + mess.getType());
+                    } else {
+                        System.out.println("[peer" + peerID + "] " + "Got an array:" + new String(mess.getBits().getBytes()) + " as an answer to bitfield message from " + client);
+                        receivedBitfield.setBytes(0, bitfield.getSize() - 1, mess.getBits().getBytes());
+                    }
+                } catch (IOException e) {
+                    System.out.println("[peer" + peerID + "] " + " Failed to receive a bitfield message from client: " + client);
+                    throw new RuntimeException(e);
                 }
+                //if no bitfield, than setBitfield 0, else - a received bitfield
+                //if BitfieldCheck() finds out B has the peaces we need
+                System.out.println();
+                if (BitfieldCheck(receivedBitfield))
+                    interested = true;
+                //send interested message
+                //send not-interested message
+                //in one function
+                System.out.println();
+                try {
+                    sendInterested(client, interested);
+                } catch (IOException e) {
+                    System.out.println("[peer" + peerID + "] " + "Sending " + (interested ? "interested" : "not interested") + " message to " + client + " failed: ");
+                    throw new RuntimeException(e);
+                }
+                gotBitfield = true;
+            } else {
+                try {
+                    mess.receive(client);
+                    System.out.println();
+                    if (mess.getType() == MessageType.INTERESTED || mess.getType() == MessageType.NOT_INTERESTED)
+                        System.out.println("[peer" + peerID + "] " + "Failed to receive an answer to a bitfield message from " + client);
+                    System.out.println("[peer" + peerID + "] " + "Got an " + Arrays.toString(mess.getBits().getBytes()) + " as an answer to bitfield message from " + client);
+                } catch (IOException e) {
+                    System.out.println("[peer" + peerID + "] " + "Failed to receive an answer to a bitfield message from " + client);
+                    throw new RuntimeException(e);
+                }
+                gotBitfield = false;
             }
-
+            System.out.println();
+            System.out.println("[peer" + peerID + "] " + "Message type is: " + mess.getType());
             //now, we know the connection is established and we can start
             //infinite messaging loop
+            System.out.println("[peer" + peerID + "] " + "Entered an infinite messaging loop");
             while (true) {
                 //get a message
-                //mess = getMessage();
+                try {
+                    if (!gotBitfield) {
+                        gotBitfield = true;
+                        mess.receive(client);
+                        System.out.println();
+                    }
+                } catch (IOException e) {
+                    System.out.println("[peer" + peerID + "] " + "Failed to receive a message from " + client + ", peer with id: " + (peer != null ? peer.peerID : "null peer"));
+                    throw new RuntimeException(e);
+                }
+
                 switch (mess.getType()) {
                     case CHOKE -> {
                         // no more pieces would be received ===> start checking messages until unchoking
@@ -184,16 +296,22 @@ public class Peer implements Protocol {
                         //send a request message, using a client bitfield and our own bitfield
                     }
                     case INTERESTED -> {
+                        System.out.println("[peer" + peerID + "] " + " Client: " + client + " is interested");
                         //remember, that this peer is interested in peaces, we have
                     }
                     case NOT_INTERESTED -> {
+                        System.out.println("[peer" + peerID + "] " + " Client: " + client + " is not interested");
                         //remember, that this peer is not interested in peaces, we have
                     }
                     case HAVE -> {
                         //check, if peer needs any pieces from the have message
                         //send interested or not interested
                     }
-                    case BITFIELD, INVALID -> {
+                    case BITFIELD -> {
+                        //case, when other peer didn't have anything, just ignore
+                        System.out.println("[peer" + peerID + "] " + "Received an empty bitfield from " + (peer != null ? peer.peerID : "null peer"));
+                    }
+                    case INVALID -> {
                         //INCORRECT CASE, SHOULDN'T BE RECEIVED AFTER HANDSHAKING
                     }
                     case REQUEST -> {

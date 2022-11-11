@@ -13,15 +13,16 @@ public class Bitfield implements Serializable {
         bytes = new ArrayList<>();
         Utils.addValueMultiTimes(bytes, (byte) 0, size);
     }
-    public int getSize() {
-        return bytes.size();
-    }
 
     public Bitfield(byte[] byteBits) {
         bytes = new ArrayList<>();
         for (int i = 0; i < byteBits.length; i++)
             bytes.add(byteBits[i]);
 
+    }
+
+    public int getSize() {
+        return bytes.size();
     }
 
     public byte[] getBytes() {

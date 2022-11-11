@@ -16,7 +16,7 @@ public class Config {
         try {
             this.configFile = Utils.readFile(new File(configFile));
         } catch (IOException e) {
-            System.err.println("Unable to read a config file");
+            System.err.println("[config]Unable to read a config file");
             e.printStackTrace();
             System.exit(-1);
         }

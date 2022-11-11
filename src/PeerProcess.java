@@ -5,9 +5,9 @@ import java.util.ArrayList;
 public class PeerProcess {
     private static final String peerConfigFile = "src/PeerInfo.cfg";
     public static ArrayList<Peer> peers = new ArrayList<>();
+    public static int totalPieces;
     private final long fileSize;
     private final long pieceSize;
-    private final int totalPieces;
     public String fileName;
 
     public PeerProcess(Config config) {
@@ -19,7 +19,7 @@ public class PeerProcess {
         try {
             startPeers(config);
         } catch (IOException e) {
-            System.err.println("Unable to start a peer process: ");
+            System.err.println("[peer process]Unable to start a peer process: ");
             e.printStackTrace();
             System.exit(-1);
         }
@@ -29,12 +29,16 @@ public class PeerProcess {
         return peers;
     }
 
+    public int getTotalPieces() {
+        return totalPieces;
+    }
+
     private void startPeers(Config config) throws IOException {
         String peerInfo = Utils.readFile(new File(peerConfigFile));
         String[] split = peerInfo.split("\n");
         int id, port, hasFile;
         String hostname;
-        System.out.println("Starting " + split.length + " peers");
+        System.out.println("[peer process]Starting " + split.length + " peers");
 
         for (int i = 0; i < split.length; i++) {
             String[] peerCfg = split[i].split(" ");
@@ -42,10 +46,11 @@ public class PeerProcess {
             hostname = peerCfg[1];
             port = Integer.parseInt(peerCfg[2]);
             hasFile = Integer.parseInt(peerCfg[3]);
-            System.out.println("\nGenerating a new peer... ");
+            System.out.println("\n[peer process]Generating a new peer... ");
             Peer cur = new Peer(id, hostname, port, hasFile == 1, config, peers);
-            System.out.println("Generated new peer: " + cur);
+            System.out.println("[peer process]Generated new peer: " + cur);
             peers.add(cur);
         }
+        Main.allPeersStarted = true;
     }
 }
