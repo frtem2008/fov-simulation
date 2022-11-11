@@ -12,10 +12,10 @@ public class PeerMessageSender {
         hBits.setBytes(28, 31, Utils.byteArrFromInt(sender.getPeerID()));
         byte[] sendBytes = hBits.getBytes();
         try {
-            System.out.println("[peer" + sender.getPeerID() + "] " + "sendBytes = " + Arrays.toString(sendBytes));
-            System.out.println("[peer" + sender.getPeerID() + "] " + "Sending message to " + toSend);
+            System.out.println("sendBytes = " + Arrays.toString(sendBytes));
+            System.out.println("Sending message to " + toSend);
             toSend.writeBytes(sendBytes);
-            System.out.println("[peer" + sender.getPeerID() + "] " + "Message sent to " + toSend);
+            System.out.println("Message sent to " + toSend);
             return true;
         } catch (IOException e) {
             e.printStackTrace();

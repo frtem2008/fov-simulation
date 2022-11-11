@@ -1,9 +1,6 @@
 // FIXME: 17.10.2022 CLASS FOR EASIER ONLINE COMMUNICATION
 
-import java.io.Closeable;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
