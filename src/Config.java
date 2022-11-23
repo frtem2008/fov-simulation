@@ -1,3 +1,5 @@
+/* A class for config loading and parsing */
+
 import java.io.File;
 import java.io.IOException;
 
@@ -36,6 +38,7 @@ public class Config {
                 '}';
     }
 
+    //getters
     public int getNumberOfNeighbours() {
         return numberOfNeighbours;
     }
@@ -60,6 +63,7 @@ public class Config {
         return fileName;
     }
 
+    //getting actual configs from file
     private void parseConfig() {
         int i = 0;
         configFile = configFile.replaceAll("\n", " ");

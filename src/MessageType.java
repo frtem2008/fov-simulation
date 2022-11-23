@@ -1,3 +1,5 @@
+/* Enum to represent message type with */
+
 public enum MessageType {
     INVALID((byte) -1),
     HANDSHAKE((byte) 100),

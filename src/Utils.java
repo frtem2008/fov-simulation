@@ -1,3 +1,5 @@
+/* byte arrays utils */
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -7,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Utils {
+    //get all bytes from begin to end indexes in bytes array
     public static byte[] getBytes(byte[] bytes, int begin, int end) {
         if (begin < 0 || end >= bytes.length || end <= begin)
             throw new IllegalArgumentException("Can't get bytes from " + begin + " to " + end);
@@ -15,6 +18,7 @@ public class Utils {
         return res;
     }
 
+    //get an empty byte array of length len
     public static byte[] getEmptyByteArr(int len) {
         if (len < 0)
             throw new IllegalArgumentException("Length can't be less than zero, length is: " + len);
@@ -28,10 +32,12 @@ public class Utils {
         return res;
     }
 
+    //setting all bytes to value
     public static void setAll(byte[] bytes, byte value) {
         Arrays.fill(bytes, value);
     }
 
+    //setting all bytes from begin to end to value
     public static void setBytes(byte[] bytes, int begin, int end, byte value) {
         if (begin < 0 || end >= bytes.length || end <= begin)
             throw new IllegalArgumentException("Can't set bytes from " + begin + " to " + end + " (bytes.length is " + bytes.length + ")");
@@ -40,6 +46,7 @@ public class Utils {
             bytes[i] = value;
     }
 
+    //setting all bytes from begin to end to setBytes array (copying an array to another?)
     public static void setBytes(byte[] bytes, int begin, int end, byte[] setBytes) {
         System.out.println("bytes.length = " + bytes.length);
         System.out.println("setBytes.length = " + setBytes.length);
@@ -54,6 +61,7 @@ public class Utils {
         }
     }
 
+    //reading a file
     public static String readFile(File file) throws IOException {
         String nextLine;
         StringBuilder res = new StringBuilder();
@@ -64,6 +72,7 @@ public class Utils {
         return res.toString();
     }
 
+    //getting a byte representation of an integer
     public static byte[] byteArrFromInt(int a) {
         //byte order is big endian by default
         ByteBuffer b = ByteBuffer.allocate(4);
@@ -71,12 +80,14 @@ public class Utils {
         return b.array();
     }
 
+    //getting an integer from byte array
     public static int intFromByteArr(byte[] bytes) {
         //byte order is big endian by default
         ByteBuffer b = ByteBuffer.wrap(bytes);
         return b.getInt();
     }
 
+    //adding a value to a list multiple times
     public static void addValueMultiTimes(List<Byte> a, byte value, int count) {
         if (count < 0)
             throw new IllegalArgumentException("Unable to fill a list with " + count + " elements");

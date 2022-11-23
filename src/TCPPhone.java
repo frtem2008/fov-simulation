@@ -1,4 +1,4 @@
-// FIXME: 17.10.2022 CLASS FOR EASIER ONLINE COMMUNICATION
+/* A class for easier socket operations */
 
 import java.io.Closeable;
 import java.io.DataInputStream;
@@ -29,7 +29,7 @@ public class TCPPhone implements Closeable {
         }
     }
 
-    //startCommunication constructor
+    //server (startCommunication) constructor
     public TCPPhone(ServerSocket server) {
         try {
             this.socket = server.accept();//waiting for client
@@ -40,7 +40,6 @@ public class TCPPhone implements Closeable {
             throw new RuntimeException(e);
         }
     }
-
 
     //getting ip address through socket
     public String getIp() {
